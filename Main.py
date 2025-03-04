@@ -8,6 +8,7 @@ import pickle
 pygame.init()
 
 # Constants
+CURRENTVERSION = "beta0.1"
 Screen_width, Screen_height = 0, 0
 BG_COLOR = (30, 30, 30)
 BUTTON_COLOR = (70, 130, 180)
@@ -73,7 +74,7 @@ def format_number_with_apostrophes(number):
     return f"{number:,}".replace(",", "'")
 
 #save data
-def save_data(data, filename="savefile.pkl"):
+def save_data(Saveversion, data, filename="savefile.pkl"):
     """
     Saves data to a file using pickle.
     
@@ -82,7 +83,7 @@ def save_data(data, filename="savefile.pkl"):
     """
     try:
         with open(filename, "wb") as file:
-            pickle.dump(data, file)
+            pickle.dump((Saveversion, data), file)
         print(f"Data successfully saved to {filename}")
     except Exception as e:
         print(f"Error saving data: {e}")
@@ -107,8 +108,8 @@ def load_data(filename="savefile.pkl"):
 
 #load data if possible
 if load_data() != None:
-    score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes = load_data()
-
+    Saveversion,(score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes) = load_data()
+    
 
 
 def draw_text(text, pos, color=TEXT_COLOR, center=False):
@@ -238,7 +239,7 @@ def draw_All():
     # Draw score
     draw_text(f"Score: {format_number_with_apostrophes(score)}", (20, 20))
     if Reset:
-        draw_text(f"Resets Done: {format_number_with_apostrophes(resettimes)}", (20, 70))
+        draw_text(f"Resets Not Spent: {format_number_with_apostrophes(resettimes)}", (20, 70))
 
     # Draw upgrade info
     draw_text(f"Max: {format_number_with_apostrophes(max_dice_value)}", (Screen_width - 210, 0))
@@ -269,6 +270,6 @@ while running:
 
     pygame.display.flip()
     clock.tick(FPS)
-save_data((score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes))
+save_data(CURRENTVERSION, (score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes))
 
 pygame.quit()
