@@ -3,7 +3,7 @@ import random
 import time
 import pickle
 
-
+#-515 62 -327 -base minecraft
 # Initialize Pygame
 pygame.init()
 
@@ -50,7 +50,7 @@ animation_start_time = 0
 animation_duration = 1  # Animation duration in seconds
 max_dice_value = 6
 min_dice_value = 1
-multi_value = 1
+multi_value = 1 
 expo_value = 1
 upgrade_cost = 10
 upgrade_min_cost = 10
@@ -106,10 +106,15 @@ def load_data(filename="savefile.pkl"):
         print(f"Error loading data: {e}")
         return None
 
+def Change_save_version(Old_version):
+    if Old_version == "beta0.1":
+        pass
+
 #load data if possible
 if load_data() != None:
     Saveversion,(score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes) = load_data()
-    
+if Saveversion != CURRENTVERSION:
+    Change_save_version(Saveversion) 
 
 
 def draw_text(text, pos, color=TEXT_COLOR, center=False):
