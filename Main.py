@@ -61,17 +61,135 @@ Reset = False
 resettimes = 0
 
 # Helper functions
-def format_number_with_apostrophes(number):
+def format_number_with_short_name(number):
     """
-    Format an integer into a string with apostrophes as thousands separators.
+    Format a number with apostrophes as thousands separators 
+    and use shorthand notation for large values.
 
     Args:
-        number (int): The integer to format.
+        number (int or float): The number to format.
 
     Returns:
-        str: The formatted string with apostrophes as separators.
+        str: The formatted string.
     """
+    if not isinstance(number, (int, float)):
+        raise ValueError("Input must be an integer or a float.")
+    
+    # Define suffixes for large numbers
+    suffixes = [
+        (10**303, "Cen"),  # Centillion
+        (10**300, "Nn"),   # Novenonagintillion
+        (10**297, "On"),   # Octononagintillion
+        (10**294, "Sn"),   # Septenonagintillion
+        (10**291, "SxN"),  # Sexnonagintillion
+        (10**288, "Qin"),  # Quinnonagintillion
+        (10**285, "Qun"),  # Quanonagintillion
+        (10**282, "Tn"),   # Trinonagintillion
+        (10**279, "Dn"),   # Duononagintillion
+        (10**276, "Un"),   # Unnonagintillion
+        (10**273, "Nog"),  # Nonagintillion
+        (10**270, "Noo"),  # Novenoctogintillion
+        (10**267, "Ooc"),  # Octooctogintillion
+        (10**264, "Soo"),  # Septenoctogintillion
+        (10**261, "SxO"),  # Sexoctogintillion
+        (10**258, "QiO"),  # Quinoctogintillion
+        (10**255, "Quo"),  # Quanoctogintillion
+        (10**252, "ToO"),  # Trioctogintillion
+        (10**249, "DoO"),  # Duooctogintillion
+        (10**246, "UoO"),  # Unoctogintillion
+        (10**243, "Oct"),  # Octogintillion
+        (10**240, "NoS"),  # Novenseptuagintillion
+        (10**237, "OoS"),  # Octoseptuagintillion
+        (10**234, "SoS"),  # Septenseptuagintillion
+        (10**231, "SxS"),  # Sexseptuagintillion
+        (10**228, "QiS"),  # Quinseptuagintillion
+        (10**225, "QuS"),  # Quaseptuagintillion
+        (10**222, "ToS"),  # Triseptuagintillion
+        (10**219, "DoS"),  # Duoseptuagintillion
+        (10**216, "UoS"),  # Unseptuagintillion
+        (10**213, "Sep"),  # Septuagintillion
+        (10**210, "NoH"),  # Novensexagintillion
+        (10**207, "OoH"),  # Octosexagintillion
+        (10**204, "SoH"),  # Septensexagintillion
+        (10**201, "SxH"),  # Sexsexagintillion
+        (10**198, "QiH"),  # Quinsexagintillion
+        (10**195, "QuH"),  # Quasexagintillion
+        (10**192, "ToH"),  # Trisexagintillion
+        (10**189, "DoH"),  # Duosexagintillion
+        (10**186, "UoH"),  # Unsexagintillion
+        (10**183, "Sex"),  # Sexagintillion
+        (10**180, "NoF"),  # Novenquinquagintillion
+        (10**177, "OoF"),  # Octoquinquagintillion
+        (10**174, "SoF"),  # Septenquinquagintillion
+        (10**171, "SxF"),  # Sexquinquagintillion
+        (10**168, "QiF"),  # Quinquagintillion
+        (10**165, "QuF"),  # Quinquagintillion
+        (10**162, "ToF"),  # Triquinquagintillion
+        (10**159, "DoF"),  # Duoquinquagintillion
+        (10**156, "UoF"),  # Unquinquagintillion
+        (10**153, "Quin"), # Quinquagintillion
+        (10**150, "NoT"),  # Novenquadragintillion
+        (10**147, "OoT"),  # Octoquadragintillion
+        (10**144, "SoT"),  # Septenquadragintillion
+        (10**141, "SxT"),  # Sexquadragintillion
+        (10**138, "QiT"),  # Quinquadragintillion
+        (10**135, "QuT"),  # Quinquadragintillion
+        (10**132, "ToT"),  # Triquadragintillion
+        (10**129, "DoT"),  # Duoquadragintillion
+        (10**126, "UoT"),  # Unquadragintillion
+        (10**123, "Quad"), # Quadragintillion
+        (10**120, "NoTr"), # Noventrigintillion
+        (10**117, "OoTr"), # Octotrigintillion
+        (10**114, "SoTr"), # Septentrigintillion
+        (10**111, "SxTr"), # Sextrigintillion
+        (10**108, "QiTr"), # Quintrigintillion
+        (10**105, "QuTr"), # Quintrigintillion
+        (10**102, "ToTr"), # Tritrigintillion
+        (10**99,  "DoTr"), # Duotrigintillion
+        (10**96,  "UoTr"), # Untrigintillion
+        (10**93,  "Trig"), # Trigintillion
+        (10**90,  "NoV"),  # Novemvigintillion
+        (10**87,  "OoV"),  # Octovigintillion
+        (10**84,  "SoV"),  # Septenvigintillion
+        (10**81,  "SxV"),  # Sexvigintillion
+        (10**78,  "QiV"),  # Quinvigintillion
+        (10**75,  "QuV"),  # Quinvigintillion
+        (10**72,  "ToV"),  # Trivigintillion
+        (10**69,  "DoV"),  # Duovigintillion
+        (10**66,  "UoV"),  # Unvigintillion
+        (10**63,  "V"),    # Vigintillion
+        (10**60,  "Nd"),   # Novendecillion
+        (10**57,  "Od"),   # Octodecillion
+        (10**54,  "Spd"),  # Septendecillion
+        (10**51,  "Sed"),  # Sedecillion
+        (10**48,  "Qid"),  # Quindecillion
+        (10**45,  "Qud"),  # Quattuordecillion
+        (10**42,  "Td"),   # Tredecillion
+        (10**39,  "Dd"),   # Duodecillion
+        (10**36,  "Ud"),   # Undecillion
+        (10**33,  "De"),   # Decillion
+        (10**30,  "No"),   # Nonillion
+        (10**27,  "Oc"),   # Octillion
+        (10**24,  "Sp"),   # Septillion
+        (10**21,  "Sx"),   # Sextillion
+        (10**18,  "Qi"),   # Quintillion
+        (10**15,  "Qa"),   # Quadrillion
+        (10**12,  "T"),    # Trillion
+        (10**9,   "B"),    # Billion
+        (10**6,   "M"),    # Million
+        (10**3,   "K")     # Thousand
+    ]
+
+    
+    # Apply the correct suffix if applicable
+    for value, suffix in suffixes:
+        if number >= value:
+            formatted = f"{number / value:.1f}".rstrip("0").rstrip(".")  # Avoid trailing .0
+            return f"{formatted}{suffix}"
+    
+    # Default case: Use apostrophes for small numbers
     return f"{number:,}".replace(",", "'")
+
 
 #save data
 def save_data(Saveversion, data, filename="savefile.pkl"):
@@ -140,11 +258,11 @@ def roll_dice_animation():
     if not rolling:
         if final_roll != None :
             if expo_value > 1:
-                draw_text(f"({final_roll} x {multi_value}) ^ {expo_value} = {format_number_with_apostrophes(result)}", dice_pos, center=True)
+                draw_text(f"({final_roll} x {multi_value}) ^ {expo_value} = {format_number_with_short_name(result)}", dice_pos, center=True)
             elif multi_value > 1:
-                draw_text(f"{final_roll} x {multi_value} = {format_number_with_apostrophes(result)}", dice_pos, center=True)
+                draw_text(f"{final_roll} x {multi_value} = {format_number_with_short_name(result)}", dice_pos, center=True)
             else:
-                draw_text(f"{format_number_with_apostrophes(final_roll)}", dice_pos, center=True)
+                draw_text(f"{format_number_with_short_name(final_roll)}", dice_pos, center=True)
             return
         else:
             return
@@ -242,22 +360,22 @@ def draw_All():
     roll_dice_animation()
 
     # Draw score
-    draw_text(f"Score: {format_number_with_apostrophes(score)}", (20, 20))
+    draw_text(f"Score: {format_number_with_short_name(score)}", (20, 20))
     if Reset:
-        draw_text(f"Resets Not Spent: {format_number_with_apostrophes(resettimes)}", (20, 70))
+        draw_text(f"Resets Not Spent: {format_number_with_short_name(resettimes)}", (20, 70))
 
     # Draw upgrade info
-    draw_text(f"Max: {format_number_with_apostrophes(max_dice_value)}", (Screen_width - 210, 0))
-    draw_text(f"Cost: {format_number_with_apostrophes(upgrade_cost)}", (Screen_width - 210, 30))
-    draw_text(f"Min: {format_number_with_apostrophes(min_dice_value)}", (Screen_width - 210, 115))
-    draw_text(f"Cost: {format_number_with_apostrophes(upgrade_min_cost)}", (Screen_width - 210, 145))
-    draw_text(f"Multi: {format_number_with_apostrophes(multi_value)}", (Screen_width - 210, 230))
-    draw_text(f"Cost: {format_number_with_apostrophes(upgrade_multi_cost)}", (Screen_width - 210, 260))
-    draw_text(f"Expo: {format_number_with_apostrophes(expo_value)}", (Screen_width - 210, 345))
-    draw_text(f"Cost: {format_number_with_apostrophes(upgrade_expo_cost)}", (Screen_width - 210, 375))
+    draw_text(f"Max: {format_number_with_short_name(max_dice_value)}", (Screen_width - 210, 0))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_cost)}", (Screen_width - 210, 30))
+    draw_text(f"Min: {format_number_with_short_name(min_dice_value)}", (Screen_width - 210, 115))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_min_cost)}", (Screen_width - 210, 145))
+    draw_text(f"Multi: {format_number_with_short_name(multi_value)}", (Screen_width - 210, 230))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_multi_cost)}", (Screen_width - 210, 260))
+    draw_text(f"Expo: {format_number_with_short_name(expo_value)}", (Screen_width - 210, 345))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_expo_cost)}", (Screen_width - 210, 375))
     if Reset:
-        draw_text(f"Current animation speed: {format_number_with_apostrophes(animation_duration)}s", (20, 120))
-        draw_text(f"Cost: {format_number_with_apostrophes(upgrade_anitime_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 150))
+        draw_text(f"Current animation speed: {format_number_with_short_name(animation_duration)}s", (20, 120))
+        draw_text(f"Cost: {format_number_with_short_name(upgrade_anitime_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 150))
 
 
 # Main loop
