@@ -8,11 +8,13 @@ import pickle
 pygame.init()
 
 # Constants
-CURRENTVERSION = "beta0.1"
+CURRENTVERSION = "beta0.2"
 Screen_width, Screen_height = 0, 0
 BG_COLOR = (30, 30, 30)
 BUTTON_COLOR = (70, 130, 180)
 BUTTON_HOVER_COLOR = (100, 180, 240)
+BUTTON_UNLOCKED_COLOR = (35, 65, 90)
+BUTTON_UNLOCKED_HOVER_COLOR = (50, 90, 120)
 TEXT_COLOR = (255, 255, 255)
 DICE_SIZE = 50
 FPS = 360
@@ -38,6 +40,7 @@ upgrade_min_button_rect = pygame.Rect(Screen_width - 200, 175, 150, 50)
 upgrade_multi_button_rect = pygame.Rect(Screen_width- 200, 290, 150, 50)
 upgrade_expo_button_rect = pygame.Rect(Screen_width- 200, 405, 150, 50)
 upgrade_anitime_button_rect = pygame.Rect(20, 185, 250, 50)
+unlock_Auto_button_rect = pygame.Rect(20, 300, 250, 50)
 
 
 # Game variables
@@ -52,13 +55,14 @@ max_dice_value = 6
 min_dice_value = 1
 multi_value = 1 
 expo_value = 1
-upgrade_cost = 10
+upgrade_max_cost = 10
 upgrade_min_cost = 10
 upgrade_multi_cost = 1000
 upgrade_expo_cost = 100000
 upgrade_anitime_cost = 1
 Reset = False
 resettimes = 0
+unlock_automation_cost = 8
 
 # Helper functions
 def format_number_with_short_name(number):
@@ -77,107 +81,22 @@ def format_number_with_short_name(number):
     
     # Define suffixes for large numbers
     suffixes = [
-        (10**303, "Cen"),  # Centillion
-        (10**300, "Nn"),   # Novenonagintillion
-        (10**297, "On"),   # Octononagintillion
-        (10**294, "Sn"),   # Septenonagintillion
-        (10**291, "SxN"),  # Sexnonagintillion
-        (10**288, "Qin"),  # Quinnonagintillion
-        (10**285, "Qun"),  # Quanonagintillion
-        (10**282, "Tn"),   # Trinonagintillion
-        (10**279, "Dn"),   # Duononagintillion
-        (10**276, "Un"),   # Unnonagintillion
-        (10**273, "Nog"),  # Nonagintillion
-        (10**270, "Noo"),  # Novenoctogintillion
-        (10**267, "Ooc"),  # Octooctogintillion
-        (10**264, "Soo"),  # Septenoctogintillion
-        (10**261, "SxO"),  # Sexoctogintillion
-        (10**258, "QiO"),  # Quinoctogintillion
-        (10**255, "Quo"),  # Quanoctogintillion
-        (10**252, "ToO"),  # Trioctogintillion
-        (10**249, "DoO"),  # Duooctogintillion
-        (10**246, "UoO"),  # Unoctogintillion
-        (10**243, "Oct"),  # Octogintillion
-        (10**240, "NoS"),  # Novenseptuagintillion
-        (10**237, "OoS"),  # Octoseptuagintillion
-        (10**234, "SoS"),  # Septenseptuagintillion
-        (10**231, "SxS"),  # Sexseptuagintillion
-        (10**228, "QiS"),  # Quinseptuagintillion
-        (10**225, "QuS"),  # Quaseptuagintillion
-        (10**222, "ToS"),  # Triseptuagintillion
-        (10**219, "DoS"),  # Duoseptuagintillion
-        (10**216, "UoS"),  # Unseptuagintillion
-        (10**213, "Sep"),  # Septuagintillion
-        (10**210, "NoH"),  # Novensexagintillion
-        (10**207, "OoH"),  # Octosexagintillion
-        (10**204, "SoH"),  # Septensexagintillion
-        (10**201, "SxH"),  # Sexsexagintillion
-        (10**198, "QiH"),  # Quinsexagintillion
-        (10**195, "QuH"),  # Quasexagintillion
-        (10**192, "ToH"),  # Trisexagintillion
-        (10**189, "DoH"),  # Duosexagintillion
-        (10**186, "UoH"),  # Unsexagintillion
-        (10**183, "Sex"),  # Sexagintillion
-        (10**180, "NoF"),  # Novenquinquagintillion
-        (10**177, "OoF"),  # Octoquinquagintillion
-        (10**174, "SoF"),  # Septenquinquagintillion
-        (10**171, "SxF"),  # Sexquinquagintillion
-        (10**168, "QiF"),  # Quinquagintillion
-        (10**165, "QuF"),  # Quinquagintillion
-        (10**162, "ToF"),  # Triquinquagintillion
-        (10**159, "DoF"),  # Duoquinquagintillion
-        (10**156, "UoF"),  # Unquinquagintillion
-        (10**153, "Quin"), # Quinquagintillion
-        (10**150, "NoT"),  # Novenquadragintillion
-        (10**147, "OoT"),  # Octoquadragintillion
-        (10**144, "SoT"),  # Septenquadragintillion
-        (10**141, "SxT"),  # Sexquadragintillion
-        (10**138, "QiT"),  # Quinquadragintillion
-        (10**135, "QuT"),  # Quinquadragintillion
-        (10**132, "ToT"),  # Triquadragintillion
-        (10**129, "DoT"),  # Duoquadragintillion
-        (10**126, "UoT"),  # Unquadragintillion
-        (10**123, "Quad"), # Quadragintillion
-        (10**120, "NoTr"), # Noventrigintillion
-        (10**117, "OoTr"), # Octotrigintillion
-        (10**114, "SoTr"), # Septentrigintillion
-        (10**111, "SxTr"), # Sextrigintillion
-        (10**108, "QiTr"), # Quintrigintillion
-        (10**105, "QuTr"), # Quintrigintillion
-        (10**102, "ToTr"), # Tritrigintillion
-        (10**99,  "DoTr"), # Duotrigintillion
-        (10**96,  "UoTr"), # Untrigintillion
-        (10**93,  "Trig"), # Trigintillion
-        (10**90,  "NoV"),  # Novemvigintillion
-        (10**87,  "OoV"),  # Octovigintillion
-        (10**84,  "SoV"),  # Septenvigintillion
-        (10**81,  "SxV"),  # Sexvigintillion
-        (10**78,  "QiV"),  # Quinvigintillion
-        (10**75,  "QuV"),  # Quinvigintillion
-        (10**72,  "ToV"),  # Trivigintillion
-        (10**69,  "DoV"),  # Duovigintillion
-        (10**66,  "UoV"),  # Unvigintillion
-        (10**63,  "V"),    # Vigintillion
-        (10**60,  "Nd"),   # Novendecillion
-        (10**57,  "Od"),   # Octodecillion
-        (10**54,  "Spd"),  # Septendecillion
-        (10**51,  "Sed"),  # Sedecillion
-        (10**48,  "Qid"),  # Quindecillion
-        (10**45,  "Qud"),  # Quattuordecillion
-        (10**42,  "Td"),   # Tredecillion
-        (10**39,  "Dd"),   # Duodecillion
-        (10**36,  "Ud"),   # Undecillion
-        (10**33,  "De"),   # Decillion
-        (10**30,  "No"),   # Nonillion
-        (10**27,  "Oc"),   # Octillion
-        (10**24,  "Sp"),   # Septillion
-        (10**21,  "Sx"),   # Sextillion
-        (10**18,  "Qi"),   # Quintillion
-        (10**15,  "Qa"),   # Quadrillion
-        (10**12,  "T"),    # Trillion
-        (10**9,   "B"),    # Billion
-        (10**6,   "M"),    # Million
-        (10**3,   "K")     # Thousand
+        (10**n, s) for n, s in [
+            (303, "Cen"), (300, "Nn"), (297, "On"), (294, "Sn"), (291, "SxN"), (288, "Qin"), (285, "Qun"),
+            (282, "Tn"), (279, "Dn"), (276, "Un"), (273, "Nog"), (270, "Noo"), (267, "Ooc"), (264, "Soo"),
+            (261, "SxO"), (258, "QiO"), (255, "Quo"), (252, "ToO"), (249, "DoO"), (246, "UoO"), (243, "Oct"),
+            (240, "NoS"), (237, "OoS"), (234, "SoS"), (231, "SxS"), (228, "QiS"), (225, "QuS"), (222, "ToS"),
+            (219, "DoS"), (216, "UoS"), (213, "Sep"), (210, "NoH"), (207, "OoH"), (204, "SoH"), (201, "SxH"),   
+            (198, "QiH"), (195, "QuH"), (192, "ToH"), (189, "DoH"), (186, "UoH"), (183, "Sex"), (180, "NoF"),
+            (177, "OoF"), (174, "SoF"), (171, "SxF"), (168, "QiF"), (165, "QuF"), (162, "ToF"), (159, "DoF"),
+            (156, "UoF"), (153, "Quin"), (150, "NoT"), (147, "OoT"), (144, "SoT"), (141, "SxT"), (138, "QiT"),
+            (135, "QuT"), (132, "ToT"), (129, "DoT"), (126, "UoT"), (123, "Quad"), (120, "NoTr"), (117, "OoTr"),
+            (114, "SoTr"), (111, "SxTr"), (108, "QiTr"), (105, "QuTr"), (102, "ToTr"), (99, "DoTr"), (96, "UoTr"),
+            (93, "Trig"), (90, "NoV"), (87, "OoV"), (84, "SoV"), (81, "SxV"), (78, "QiV"), (75, "QuV"), (72, "ToV"),
+            (69, "DoV"), (66, "UoV"), (63, "V"), (60, "Nd"), (57, "Od"), (54, "Spd"), (51, "Sed"), (48, "Qid"),
+            (45, "Qud"), (42, "Td"), (39, "Dd"), (36, "Ud"), (33, "De"), (30, "No"), (27, "Oc"), (24, "Sp"),
+            (21, "Sx"), (18, "Qi"), (15, "Qa"), (12, "T"), (9, "B"), (6, "M"), (3, "K")
+        ]
     ]
 
     
@@ -206,6 +125,22 @@ def save_data(Saveversion, data, filename="savefile.pkl"):
     except Exception as e:
         print(f"Error saving data: {e}")
 
+# Auto-click variables
+auto_click_enabled = False
+auto_click_interval = animation_duration  # Time in seconds between automatic rolls
+last_auto_click_time = time.time()
+
+def auto_click():
+    global rolling, last_auto_click_time,animation_start_time
+    if auto_click_enabled and not rolling:
+        auto_click_interval = animation_duration
+        current_time = time.time()
+        if current_time - last_auto_click_time >= auto_click_interval:
+            rolling = True
+            animation_start_time = time.time()
+            last_auto_click_time = current_time
+
+
 #load data
 def load_data(filename="savefile.pkl"):
     """
@@ -226,13 +161,29 @@ def load_data(filename="savefile.pkl"):
 
 def Change_save_version(Old_version):
     if Old_version == "beta0.1":
-        pass
+        auto_click_enabled = False
+        _,(score, result, rolling, animating, final_roll, animation_start_time,
+                 animation_duration, max_dice_value, min_dice_value, multi_value,
+                 expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
+                 upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes) = load_data()
+        return (CURRENTVERSION,(score, result, rolling, animating, final_roll, animation_start_time,
+                 animation_duration, max_dice_value, min_dice_value, multi_value,
+                 expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
+                 upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes, auto_click_enabled))
 
 #load data if possible
 if load_data() != None:
-    Saveversion,(score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes) = load_data()
-if Saveversion != CURRENTVERSION:
-    Change_save_version(Saveversion) 
+    try:
+        Saveversion,(score, result, rolling, animating, final_roll, animation_start_time,
+                    animation_duration, max_dice_value, min_dice_value, multi_value,
+                    expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
+                    upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes, auto_click_enabled) = load_data()
+    except ValueError:
+        Oldver, _ = load_data()
+        Saveversion,(score, result, rolling, animating, final_roll, animation_start_time,
+                    animation_duration, max_dice_value, min_dice_value, multi_value,
+                    expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
+                    upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes, auto_click_enabled) = Change_save_version(Oldver)
 
 
 def draw_text(text, pos, color=TEXT_COLOR, center=False):
@@ -253,7 +204,9 @@ def draw_button(rect, text, hover_color, default_color):
     screen.blit(text_surface, text_rect)
 
 def roll_dice_animation():
-    global final_roll, rolling, score, animating, result, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, Reset, resettimes
+    global final_roll, rolling, score, animating, max_dice_value, min_dice_value, resettimes
+    global result, animation_start_time, animation_duration, multi_value, expo_value, Reset
+    global upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost
 
     if not rolling:
         if final_roll != None :
@@ -269,7 +222,7 @@ def roll_dice_animation():
 
 
     current_time = time.time()
-    if current_time - animation_start_time < animation_duration:
+    if current_time - animation_start_time < animation_duration and not auto_click_enabled:
         animating = True
         dice_number = random.randint(min_dice_value, max_dice_value)
         draw_text(str(dice_number), dice_pos, center=True)
@@ -294,58 +247,74 @@ def roll_dice_animation():
             min_dice_value = 1
             multi_value = 1
             expo_value = 1
-            upgrade_cost = 10
+            upgrade_max_cost = 10
             upgrade_min_cost = 10
             upgrade_multi_cost = 1000
             upgrade_expo_cost = 100000
+def Clicks(event):
+    global score, rolling, animation_start_time, animation_duration, max_dice_value, upgrade_expo_cost
+    global min_dice_value, multi_value, expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost
+    global upgrade_anitime_cost, resettimes
+    if button_rect.collidepoint(event.pos) and not rolling:
+        rolling = True
+        animation_start_time = time.time()
+        return
+
+    if upgrade_button_rect.collidepoint(event.pos) and score >= upgrade_max_cost:
+        max_dice_value += 1
+        score -= upgrade_max_cost
+        score = round(score)
+        upgrade_max_cost = UPGRADE_COST_BASE_MINMAX * upgrade_max_cost
+        upgrade_max_cost = round(upgrade_max_cost)
+        return
+
+    if upgrade_min_button_rect.collidepoint(event.pos) and score >= upgrade_min_cost and min_dice_value < max_dice_value:
+        min_dice_value += 1
+        score -= upgrade_min_cost
+        score = round(score)
+        upgrade_min_cost = UPGRADE_COST_BASE_MINMAX * upgrade_min_cost
+        upgrade_min_cost = round(upgrade_min_cost)
+        return
+
+    if upgrade_multi_button_rect.collidepoint(event.pos) and score >= upgrade_multi_cost:
+        multi_value += 1
+        score -= upgrade_multi_cost
+        score = round(score)
+        upgrade_multi_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_multi_cost
+        upgrade_multi_cost = round(upgrade_multi_cost)
+        return
+    
+    if upgrade_expo_button_rect.collidepoint(event.pos) and score >= upgrade_expo_cost:
+        expo_value += 0.5
+        expo_value = round(expo_value * 10) / 10
+        score -= upgrade_expo_cost
+        score = round(score)
+        upgrade_expo_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_expo_cost
+        upgrade_expo_cost = round(upgrade_expo_cost)
+        return
+    if Reset:
+        if upgrade_anitime_button_rect.collidepoint(event.pos) and resettimes >= upgrade_anitime_cost:
+            animation_duration = animation_duration/2
+            resettimes -= upgrade_anitime_cost
+            upgrade_anitime_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_anitime_cost
+            return
+        if unlock_Auto_button_rect.collidepoint(event.pos) and resettimes >= unlock_automation_cost and not(auto_click_enabled):
+            auto_click_enabled = True
+            resettimes = resettimes - unlock_automation_cost
+            return
+    
 
 def pygame_events():
-    global score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, running, resettimes
+    global running
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if button_rect.collidepoint(event.pos) and not rolling:
-                rolling = True
-                animation_start_time = time.time()
-
-            if upgrade_button_rect.collidepoint(event.pos) and score >= upgrade_cost:
-                max_dice_value += 1
-                score -= upgrade_cost
-                score = round(score)
-                upgrade_cost = UPGRADE_COST_BASE_MINMAX * upgrade_cost
-                upgrade_cost = round(upgrade_cost)
-
-            if upgrade_min_button_rect.collidepoint(event.pos) and score >= upgrade_min_cost and min_dice_value < max_dice_value:
-                min_dice_value += 1
-                score -= upgrade_min_cost
-                score = round(score)
-                upgrade_min_cost = UPGRADE_COST_BASE_MINMAX * upgrade_min_cost
-                upgrade_min_cost = round(upgrade_min_cost)
-
-            if upgrade_multi_button_rect.collidepoint(event.pos) and score >= upgrade_multi_cost:
-                multi_value += 1
-                score -= upgrade_multi_cost
-                score = round(score)
-                upgrade_multi_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_multi_cost
-                upgrade_multi_cost = round(upgrade_multi_cost)
-            
-            if upgrade_expo_button_rect.collidepoint(event.pos) and score >= upgrade_expo_cost:
-                expo_value += 0.5
-                expo_value = round(expo_value * 10) / 10
-                score -= upgrade_expo_cost
-                score = round(score)
-                upgrade_expo_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_expo_cost
-                upgrade_expo_cost = round(upgrade_expo_cost)
-            if Reset:
-                if upgrade_anitime_button_rect.collidepoint(event.pos) and resettimes >= upgrade_anitime_cost:
-                    animation_duration = animation_duration/2
-                    resettimes -= upgrade_anitime_cost
-                    upgrade_anitime_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_anitime_cost
-
+            Clicks(event)
 def draw_All():
-    global score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost
+    global score, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_max_cost
+    global upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost
     # Draw buttons
     draw_button(button_rect, "Roll", BUTTON_HOVER_COLOR, BUTTON_COLOR)
     draw_button(upgrade_button_rect, "Upgrade Max", BUTTON_HOVER_COLOR, BUTTON_COLOR)
@@ -354,6 +323,10 @@ def draw_All():
     draw_button(upgrade_expo_button_rect, "Upgrade Expo", BUTTON_HOVER_COLOR, BUTTON_COLOR)
     if Reset:
         draw_button(upgrade_anitime_button_rect, "Upgrade Animation Time", BUTTON_HOVER_COLOR, BUTTON_COLOR)
+        if auto_click_enabled:
+            draw_button(unlock_Auto_button_rect, "Automation unlocked", BUTTON_UNLOCKED_HOVER_COLOR, BUTTON_UNLOCKED_COLOR)
+        else:
+            draw_button(unlock_Auto_button_rect, "Unlock Automation", BUTTON_HOVER_COLOR, BUTTON_COLOR)
         pass
 
     # Draw dice animation or final result
@@ -366,7 +339,7 @@ def draw_All():
 
     # Draw upgrade info
     draw_text(f"Max: {format_number_with_short_name(max_dice_value)}", (Screen_width - 210, 0))
-    draw_text(f"Cost: {format_number_with_short_name(upgrade_cost)}", (Screen_width - 210, 30))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_max_cost)}", (Screen_width - 210, 30))
     draw_text(f"Min: {format_number_with_short_name(min_dice_value)}", (Screen_width - 210, 115))
     draw_text(f"Cost: {format_number_with_short_name(upgrade_min_cost)}", (Screen_width - 210, 145))
     draw_text(f"Multi: {format_number_with_short_name(multi_value)}", (Screen_width - 210, 230))
@@ -376,6 +349,7 @@ def draw_All():
     if Reset:
         draw_text(f"Current animation speed: {format_number_with_short_name(animation_duration)}s", (20, 120))
         draw_text(f"Cost: {format_number_with_short_name(upgrade_anitime_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 150))
+        draw_text(f"Cost to unlock Automation: {format_number_with_short_name(unlock_automation_cost)}s", (20, 240))
 
 
 # Main loop
@@ -384,15 +358,20 @@ clock = pygame.time.Clock()
 
 while running:
     screen.fill(BG_COLOR)
+    auto_click_interval = animation_duration
 
     #handels events
     pygame_events()
+    auto_click()
 
     #draws everythoing
     draw_All()
 
     pygame.display.flip()
     clock.tick(FPS)
-save_data(CURRENTVERSION, (score, result, rolling, animating, final_roll, animation_start_time, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_cost, upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes))
+save_data(CURRENTVERSION, (score, result, rolling, animating, final_roll, animation_start_time,
+                           animation_duration, max_dice_value, min_dice_value, multi_value,
+                           expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
+                           upgrade_expo_cost, upgrade_anitime_cost, Reset, resettimes, auto_click_enabled))
 
 pygame.quit()
