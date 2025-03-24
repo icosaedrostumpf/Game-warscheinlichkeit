@@ -349,7 +349,8 @@ def draw_All():
     if Reset:
         draw_text(f"Current animation speed: {format_number_with_short_name(animation_duration)}s", (20, 120))
         draw_text(f"Cost: {format_number_with_short_name(upgrade_anitime_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 150))
-        draw_text(f"Cost to unlock Automation: {format_number_with_short_name(unlock_automation_cost)}s", (20, 240))
+        if not(auto_click_enabled):
+            draw_text(f"Cost to unlock Automation: {format_number_with_short_name(unlock_automation_cost)}s", (20, 240))
 
 
 # Main loop
