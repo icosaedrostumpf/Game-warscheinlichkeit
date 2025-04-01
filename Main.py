@@ -63,7 +63,10 @@ upgrade_anitime_cost = 1
 Reset = False
 resettimes = 0
 unlock_automation_cost = 8
+scroll_offset = 0
+SCROLL_SPEED = 20  # Adjust scrolling speed
 
+sidebar_rect = pygame.Rect(Screen_width - 225, 0, 225, Screen_height)
 # Helper functions
 def format_number_with_short_name(number):
     """
@@ -254,44 +257,23 @@ def roll_dice_animation():
 def Clicks(event):
     global score, rolling, animation_start_time, animation_duration, max_dice_value, upgrade_expo_cost
     global min_dice_value, multi_value, expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost
-    global upgrade_anitime_cost, resettimes
+    global upgrade_anitime_cost, resettimes, sidebar_rect, scroll_offset
+
+    if event.button == 4:  # Scroll up
+        if sidebar_rect.collidepoint(event.pos) and scroll_offset < 0:  # Check if inside sidebar
+            scroll_offset += SCROLL_SPEED
+        return
+                    
+    elif event.button == 5:  # Scroll down
+        if sidebar_rect.collidepoint(event.pos) and scroll_offset > -400:  # Check if inside sidebar
+            scroll_offset -= SCROLL_SPEED
+        return
+
     if button_rect.collidepoint(event.pos) and not rolling:
         rolling = True
         animation_start_time = time.time()
         return
 
-    if upgrade_button_rect.collidepoint(event.pos) and score >= upgrade_max_cost:
-        max_dice_value += 1
-        score -= upgrade_max_cost
-        score = round(score)
-        upgrade_max_cost = UPGRADE_COST_BASE_MINMAX * upgrade_max_cost
-        upgrade_max_cost = round(upgrade_max_cost)
-        return
-
-    if upgrade_min_button_rect.collidepoint(event.pos) and score >= upgrade_min_cost and min_dice_value < max_dice_value:
-        min_dice_value += 1
-        score -= upgrade_min_cost
-        score = round(score)
-        upgrade_min_cost = UPGRADE_COST_BASE_MINMAX * upgrade_min_cost
-        upgrade_min_cost = round(upgrade_min_cost)
-        return
-
-    if upgrade_multi_button_rect.collidepoint(event.pos) and score >= upgrade_multi_cost:
-        multi_value += 1
-        score -= upgrade_multi_cost
-        score = round(score)
-        upgrade_multi_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_multi_cost
-        upgrade_multi_cost = round(upgrade_multi_cost)
-        return
-    
-    if upgrade_expo_button_rect.collidepoint(event.pos) and score >= upgrade_expo_cost:
-        expo_value += 0.5
-        expo_value = round(expo_value * 10) / 10
-        score -= upgrade_expo_cost
-        score = round(score)
-        upgrade_expo_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_expo_cost
-        upgrade_expo_cost = round(upgrade_expo_cost)
-        return
     if Reset:
         if upgrade_anitime_button_rect.collidepoint(event.pos) and resettimes >= upgrade_anitime_cost:
             animation_duration = animation_duration/2
@@ -302,25 +284,67 @@ def Clicks(event):
             auto_click_enabled = True
             resettimes = resettimes - unlock_automation_cost
             return
+
+    (x, y) = event.pos
+    y = y - scroll_offset
+    if upgrade_button_rect.collidepoint((x, y)) and score >= upgrade_max_cost:
+        max_dice_value += 1
+        score -= upgrade_max_cost
+        score = round(score)
+        upgrade_max_cost = UPGRADE_COST_BASE_MINMAX * upgrade_max_cost
+        upgrade_max_cost = round(upgrade_max_cost)
+        return
+
+    if upgrade_min_button_rect.collidepoint((x, y)) and score >= upgrade_min_cost and min_dice_value < max_dice_value:
+        min_dice_value += 1
+        score -= upgrade_min_cost
+        score = round(score)
+        upgrade_min_cost = UPGRADE_COST_BASE_MINMAX * upgrade_min_cost
+        upgrade_min_cost = round(upgrade_min_cost)
+        return
+
+    if upgrade_multi_button_rect.collidepoint((x, y)) and score >= upgrade_multi_cost:
+        multi_value += 1
+        score -= upgrade_multi_cost
+        score = round(score)
+        upgrade_multi_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_multi_cost
+        upgrade_multi_cost = round(upgrade_multi_cost)
+        return
+    
+    if upgrade_expo_button_rect.collidepoint((x, y)) and score >= upgrade_expo_cost:
+        expo_value += 0.5
+        expo_value = round(expo_value * 10) / 10
+        score -= upgrade_expo_cost
+        score = round(score)
+        upgrade_expo_cost = UPGRADE_COST_BASE_MULTIEXPO * upgrade_expo_cost
+        upgrade_expo_cost = round(upgrade_expo_cost)
+        return
     
 
 def pygame_events():
-    global running
+    global running, scroll_offset
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             Clicks(event)
+        
+
 def draw_All():
-    global score, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_max_cost
+    global score, animation_duration, max_dice_value, min_dice_value, multi_value, expo_value, upgrade_max_cost, screen
     global upgrade_min_cost, upgrade_multi_cost, upgrade_expo_cost, upgrade_anitime_cost
+
     # Draw buttons
     draw_button(button_rect, "Roll", BUTTON_HOVER_COLOR, BUTTON_COLOR)
-    draw_button(upgrade_button_rect, "Upgrade Max", BUTTON_HOVER_COLOR, BUTTON_COLOR)
-    draw_button(upgrade_min_button_rect, "Upgrade Min", BUTTON_HOVER_COLOR, BUTTON_COLOR)
-    draw_button(upgrade_multi_button_rect, "Upgrade Multi", BUTTON_HOVER_COLOR, BUTTON_COLOR)
-    draw_button(upgrade_expo_button_rect, "Upgrade Expo", BUTTON_HOVER_COLOR, BUTTON_COLOR)
+
+    pygame.draw.rect(screen, (0, 0, 128), sidebar_rect)
+
+    # Scrollable upgrade buttons
+    draw_button(upgrade_button_rect.move(0, scroll_offset), "Upgrade Max", BUTTON_HOVER_COLOR, BUTTON_COLOR)
+    draw_button(upgrade_min_button_rect.move(0, scroll_offset), "Upgrade Min", BUTTON_HOVER_COLOR, BUTTON_COLOR)
+    draw_button(upgrade_multi_button_rect.move(0, scroll_offset), "Upgrade Multi", BUTTON_HOVER_COLOR, BUTTON_COLOR)
+    draw_button(upgrade_expo_button_rect.move(0, scroll_offset), "Upgrade Expo", BUTTON_HOVER_COLOR, BUTTON_COLOR)
     if Reset:
         draw_button(upgrade_anitime_button_rect, "Upgrade Animation Time", BUTTON_HOVER_COLOR, BUTTON_COLOR)
         if auto_click_enabled:
@@ -338,19 +362,19 @@ def draw_All():
         draw_text(f"Resets Not Spent: {format_number_with_short_name(resettimes)}", (20, 70))
 
     # Draw upgrade info
-    draw_text(f"Max: {format_number_with_short_name(max_dice_value)}", (Screen_width - 210, 0))
-    draw_text(f"Cost: {format_number_with_short_name(upgrade_max_cost)}", (Screen_width - 210, 30))
-    draw_text(f"Min: {format_number_with_short_name(min_dice_value)}", (Screen_width - 210, 115))
-    draw_text(f"Cost: {format_number_with_short_name(upgrade_min_cost)}", (Screen_width - 210, 145))
-    draw_text(f"Multi: {format_number_with_short_name(multi_value)}", (Screen_width - 210, 230))
-    draw_text(f"Cost: {format_number_with_short_name(upgrade_multi_cost)}", (Screen_width - 210, 260))
-    draw_text(f"Expo: {format_number_with_short_name(expo_value)}", (Screen_width - 210, 345))
-    draw_text(f"Cost: {format_number_with_short_name(upgrade_expo_cost)}", (Screen_width - 210, 375))
+    draw_text(f"Max: {format_number_with_short_name(max_dice_value)}", (Screen_width - 210, scroll_offset))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_max_cost)}", (Screen_width - 210, 30 + scroll_offset))
+    draw_text(f"Min: {format_number_with_short_name(min_dice_value)}", (Screen_width - 210, 115 + scroll_offset))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_min_cost)}", (Screen_width - 210, 145 + scroll_offset))
+    draw_text(f"Multi: {format_number_with_short_name(multi_value)}", (Screen_width - 210, 230 + scroll_offset))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_multi_cost)}", (Screen_width - 210, 260 + scroll_offset))
+    draw_text(f"Expo: {format_number_with_short_name(expo_value)}", (Screen_width - 210, 345 + scroll_offset))
+    draw_text(f"Cost: {format_number_with_short_name(upgrade_expo_cost)}", (Screen_width - 210, 375 + scroll_offset))
     if Reset:
         draw_text(f"Current animation speed: {format_number_with_short_name(animation_duration)}s", (20, 120))
         draw_text(f"Cost: {format_number_with_short_name(upgrade_anitime_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 150))
         if not(auto_click_enabled):
-            draw_text(f"Cost to unlock Automation: {format_number_with_short_name(unlock_automation_cost)}s", (20, 240))
+            draw_text(f"Cost to unlock Automation: {format_number_with_short_name(unlock_automation_cost)} Reset{'s' if upgrade_anitime_cost != 1 else ''}", (20, 240))
 
 
 # Main loop
@@ -370,6 +394,8 @@ while running:
 
     pygame.display.flip()
     clock.tick(FPS)
+
+
 save_data(CURRENTVERSION, (score, result, rolling, animating, final_roll, animation_start_time,
                            animation_duration, max_dice_value, min_dice_value, multi_value,
                            expo_value, upgrade_max_cost, upgrade_min_cost, upgrade_multi_cost,
